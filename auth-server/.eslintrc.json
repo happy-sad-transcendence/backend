@@ -15,12 +15,25 @@
   "parserOptions": {
     "ecmaFeatures": { "jsx": true }, // back 필요 없음
     "ecmaVersion": "latest",
-    "sourceType": "module"
+    "sourceType": "module",
+    "import/resolver": {
+      "node": {
+        "extensions": [".js", ".ts"]
+      }
+    }
   },
   "plugins": ["@typescript-eslint", "prettier"],
   "rules": {
     "no-empty-function": "off",
     "no-nested-ternary": "off",
-    "no-useless-constructor": "off"
+    "no-useless-constructor": "off",
+    "import/extensions": [
+      "error",
+      "always",
+      {
+        "js": "always",
+        "ts": "never"
+      }
+    ]
   }
 }
