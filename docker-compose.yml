@@ -50,6 +50,22 @@ services:
       - IPC_LOCK
     command: server -dev
 
+#  waf:
+#    build: ./waf
+#    ports:
+#      - "80:80"
+#    depends_on:
+#      - auth-server
+  waf:
+    image: owasp/modsecurity-crs:nginx
+    container_name: waf
+    ports:
+      - "80:80"
+    volumes:
+      - ./waf/nginx/default.conf:/etc/nginx/templates/conf.d/default.conf.template:ro
+    depends_on:
+      - auth-server
+
 
 networks:
   monitoring:
