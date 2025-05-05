@@ -1,8 +1,11 @@
 import Fastify from "fastify";
 import dotenv from "dotenv";
 import jwt from "@fastify/jwt";
-import { loadJwtSecret } from "./service/vault.js";
 import metricsPlugin from "fastify-metrics";
+import { loadJwtSecret } from "./service/vault.js";
+import { authRoutes } from "./route/auth.js";
+import { oauthRoutes } from "./route/oauth.js";
+import { twoFactorRoutes } from "./route/2fa.js";
 
 dotenv.config();
 
@@ -25,6 +28,10 @@ async function main() {
     app.get("/", async (): Promise<{ message: string }> => {
         return { message: "Auth server ready!" };
     });
+
+    app.register(authRoutes);
+    app.register(oauthRoutes);
+    app.register(twoFactorRoutes);
 
     const PORT = Number(process.env.PORT || 4000);
     app.listen(
