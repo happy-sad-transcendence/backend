@@ -1,0 +1,51 @@
+version: '3.0'
+
+services:
+  auth-server:
+    build: ./auth-server
+    ports:
+      - "4000:4000"
+    environment:
+      - 'VAULT_ADDR=http://vault:8200'
+      - 'VAULT_TOKEN=dev-token'
+    depends_on:
+      - vault
+
+#  main-server:
+#    build: ./main-server
+#    ports:
+#      - "8000:8000"
+#    depends_on:
+#      - auth-server
+#      - log-server
+
+  log-server:
+    image: sebp/elk
+    ports:
+      - "5601:5601"
+      - "9200:9200"
+      - "5044:5044"
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - /Users/heechoi/Documents/happy-sad-transcendence/backend/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
+  vault:
+    image: hashicorp/vault
+    ports:
+      - "8200:8200"
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=dev-token
+    cap_add:
+      - IPC_LOCK
+    command: server -dev
