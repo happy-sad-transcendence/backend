@@ -1,0 +1,21 @@
+# monitoring/alertmanager.yml
+
+global:
+  resolve_timeout: 5m
+
+route:
+  # 모든 알림을 하나의 그룹(default)으로 묶어
+  group_by: ['alertname']
+  # 그룹별로 묶은 후 1분마다 한 번씩 전송
+  group_wait: 30s
+  group_interval: 1m
+  repeat_interval: 12h
+  # 기본 리시버 이름
+  receiver: 'default-receiver'
+
+receivers:
+  - name: 'default-receiver'
+    # 이 예시는 "버리기(null)" 리시버라 실제 전송은 하지 않습니다.
+    # 추후 이메일·Slack 등을 구성할 때 이 블록을 교체하세요.
+    webhook_configs:
+      - url: 'http://localhost:9999/'
