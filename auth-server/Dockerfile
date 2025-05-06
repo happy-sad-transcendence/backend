@@ -1,18 +1,25 @@
-# 1. Node.js 기반 이미지 사용
-FROM node:23
-
-# 2. 작업 디렉토리 설정
+# 1) 빌드 스테이지
+FROM node:23 AS builder
 WORKDIR /app
 
-# 3. 종속성 설치
-COPY package*.json ./
+# 의존성 + 타입스크립트 설정만 먼저 복사
+COPY package*.json tsconfig.json ./
 RUN npm install
 
-# 4. 소스 복사
-COPY . .
-
-# 5. TypeScript 빌드
+# 소스 복사 & 빌드
+COPY src ./src
 RUN npm run build
 
-# 6. 앱 실행
-CMD ["node", "dist/index.js"]
+# 2) 프로덕션 스테이지
+FROM node:23-slim
+WORKDIR /app
+
+# 빌드 결과물만 복사
+COPY --from=builder /app/dist ./dist
+COPY package*.json ./
+
+# 프로덕션용 의존성 설치
+RUN npm install --production
+
+# 실제 실행
+CMD ["npm", "run", "start"]
