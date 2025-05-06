@@ -1,23 +1,41 @@
-import * as process from "process";
 import axios from "axios";
 
-export async function loadJwtSecret(): Promise<string> {
-    return process.env.JWT_SECRET || "default-secret";
+type GoogleOAuthSecrets = {
+    clientId: string;
+    clientSecret: string;
+    redirectUri: string;
+};
 
-    const vaultAddr = process.env.VAULT_ADDR;
-    const vaultToken = process.env.VAULT_TOKEN;
-    const secretPath = process.env.JWT_SECRET_PATH;
+let cachedGoogleSecrets: GoogleOAuthSecrets | null = null;
+let cachedJwtSecret: string | null = null;
 
-    if (!vaultAddr || !vaultToken || !secretPath) {
-        throw new Error("vault 환경변수 설정 필수");
-    }
+const vaultAddr = process.env.VAULT_ADDR || "http://vault:8200";
+const vaultToken = process.env.VAULT_TOKEN || "dev-token";
 
-    const url = `${vaultAddr}/v1/${secretPath}`;
-    const res = await axios.get(url, {
-        headers: {
-            "X-Vault-Token": vaultToken,
-        },
+export async function getGoogleOAuthSecrets(): Promise<GoogleOAuthSecrets> {
+    if (cachedGoogleSecrets) return cachedGoogleSecrets;
+
+    const res = await axios.get(`${vaultAddr}/v1/secret/data/oauth`, {
+        headers: { "X-Vault-Token": vaultToken },
     });
 
-    return res.data.data.data.SECRET_KEY;
+    const data = res.data.data.data;
+    cachedGoogleSecrets = {
+        clientId: data.GOOGLE_CLIENT_ID,
+        clientSecret: data.GOOGLE_CLIENT_SECRET,
+        redirectUri: data.GOOGLE_REDIRECT_URI,
+    };
+
+    return cachedGoogleSecrets;
+}
+
+export async function getJwtSecret(): Promise<string> {
+    if (cachedJwtSecret) return cachedJwtSecret;
+
+    const res = await axios.get(`${vaultAddr}/v1/secret/data/jwt`, {
+        headers: { "X-Vault-Token": vaultToken },
+    });
+
+    cachedJwtSecret = res.data.data.data.SECRET_KEY;
+    return cachedJwtSecret;
 }

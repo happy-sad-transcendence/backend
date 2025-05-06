@@ -1,4 +1,4 @@
-// src/routes/2fa.ts
+// src/routes/twoFactor.ts
 import { FastifyInstance } from "fastify";
 import speakeasy from "speakeasy";
 import qrcode from "qrcode";
@@ -7,7 +7,7 @@ const secretMap = new Map<string, string>(); // 간단한 메모리 저장소 (�
 
 export async function twoFactorRoutes(app: FastifyInstance) {
     // OTP 시크릿 생성 및 QR 코드 발급
-    app.get("/2fa/setup", async (req, reply) => {
+    app.get("/setup", async (req, reply) => {
         const email = (req.query as any).email;
         if (!email) return reply.status(400).send({ error: "Missing email" });
 
@@ -22,7 +22,7 @@ export async function twoFactorRoutes(app: FastifyInstance) {
     });
 
     // OTP 코드 검증
-    app.post("/2fa/verify", async (req, reply) => {
+    app.post("/verify", async (req, reply) => {
         const { email, token } = req.body as { email: string; token: string };
 
         const secret = secretMap.get(email);

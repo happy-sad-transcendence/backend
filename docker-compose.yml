@@ -1,4 +1,4 @@
-version: '3.0'
+version: '3.9'
 
 services:
   auth-server:
@@ -45,17 +45,20 @@ services:
     ports:
       - "8200:8200"
     environment:
-      - VAULT_DEV_ROOT_TOKEN_ID=dev-token
+      VAULT_DEV_ROOT_TOKEN_ID: dev-token
     cap_add:
       - IPC_LOCK
-    command: server -dev
 
-#  waf:
-#    build: ./waf
-#    ports:
-#      - "80:80"
-#    depends_on:
-#      - auth-server
+
+  vault-init:
+    build: ./vault-init
+    depends_on:
+      - vault
+    restart: "no"
+    environment:
+      VAULT_ADDR: http://vault:8200
+      VAULT_TOKEN: dev-token
+
   waf:
     image: owasp/modsecurity-crs:nginx
     container_name: waf
