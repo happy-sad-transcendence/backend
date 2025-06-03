@@ -2,24 +2,28 @@
 FROM node:23 AS builder
 WORKDIR /app
 
-# 의존성 + 타입스크립트 설정만 먼저 복사
-COPY package*.json tsconfig.json ./
-RUN npm install
+# Corepack 활성화 + pnpm shim 다운로드/활성화 (prompt 없이)
+RUN corepack enable \
+ && corepack prepare pnpm@10.11.0 --activate
 
-# 소스 복사 & 빌드
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json ./
+RUN pnpm install --frozen-lockfile
+
 COPY src ./src
-RUN npm run build
+RUN pnpm run build
+
 
 # 2) 프로덕션 스테이지
 FROM node:23-slim
 WORKDIR /app
 
-# 빌드 결과물만 복사
+# Corepack 활성화 + pnpm shim 준비
+RUN corepack enable \
+ && corepack prepare pnpm@10.11.0 --activate
+
 COPY --from=builder /app/dist ./dist
-COPY package*.json ./
+COPY package.json pnpm-lock.yaml ./
 
-# 프로덕션용 의존성 설치
-RUN npm install --production
+RUN pnpm install --prod --frozen-lockfile
 
-# 실제 실행
-CMD ["npm", "run", "start"]
+CMD ["pnpm", "run", "start"]
