@@ -1,0 +1,10 @@
+{
+  "name": "backend",
+  "private": true,
+  "packageManager": "pnpm@10.11.0",
+  "pnpm": {
+    "overrides": {
+      "@hst/dto": "workspace:*"
+    }
+  }
+}

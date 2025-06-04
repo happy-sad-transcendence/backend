@@ -1,28 +1,30 @@
-version: '3.9'
+version: "3.9"
 
 services:
   auth-server:
-    build: ./apps/auth-server
+    build:
+      context: .
+      dockerfile: apps/auth-server/Dockerfile
     ports:
       - "4000:4000"
     environment:
-      - 'VAULT_ADDR=http://vault:8200'
-      - 'VAULT_TOKEN=dev-token'
+      - "VAULT_ADDR=http://vault:8200"
+      - "VAULT_TOKEN=dev-token"
     depends_on:
       - vault
     networks:
       - app
       - monitoring
 
-#  main-server:
-#    build: ./apps/main-server
-#    ports:
-#      - "8000:8000"
-#    depends_on:
-#      - auth-server
-#    networks:
-#      - app
-#      - monitoring
+  #  main-server:
+  #    build: ./apps/main-server
+  #    ports:
+  #      - "8000:8000"
+  #    depends_on:
+  #      - auth-server
+  #    networks:
+  #      - app
+  #      - monitoring
 
   prometheus:
     image: prom/prometheus
