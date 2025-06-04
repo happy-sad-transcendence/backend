@@ -9,7 +9,32 @@ overrides:
 
 importers:
 
-  .: {}
+  .:
+    devDependencies:
+      '@eslint/js':
+        specifier: ^9.25.0
+        version: 9.28.0
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.15.29
+      eslint:
+        specifier: ^9.25.0
+        version: 9.28.0
+      eslint-config-prettier:
+        specifier: ^10.1.5
+        version: 10.1.5(eslint@9.28.0)
+      globals:
+        specifier: ^16.2.0
+        version: 16.2.0
+      prettier:
+        specifier: ^3.5.3
+        version: 3.5.3
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+      typescript-eslint:
+        specifier: ^8.30.1
+        version: 8.33.1(eslint@9.28.0)(typescript@5.8.3)
 
   apps/auth-server:
     dependencies:
@@ -47,9 +72,6 @@ importers:
         specifier: ^2.0.0
         version: 2.0.0
     devDependencies:
-      '@eslint/js':
-        specifier: ^9.25.0
-        version: 9.28.0
       '@types/axios':
         specifier: ^0.9.36
         version: 0.9.36
@@ -59,24 +81,6 @@ importers:
       '@types/node':
         specifier: ^22.15.3
         version: 22.15.29
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^8.31.1
-        version: 8.33.1(@typescript-eslint/parser@8.33.1(eslint@9.28.0)(typescript@5.8.3))(eslint@9.28.0)(typescript@5.8.3)
-      '@typescript-eslint/parser':
-        specifier: ^8.31.1
-        version: 8.33.1(eslint@9.28.0)(typescript@5.8.3)
-      eslint:
-        specifier: ^9.25.0
-        version: 9.28.0
-      eslint-config-prettier:
-        specifier: ^10.1.5
-        version: 10.1.5(eslint@9.28.0)
-      globals:
-        specifier: ^16.2.0
-        version: 16.2.0
-      prettier:
-        specifier: ^3.5.3
-        version: 3.5.3
       tsup:
         specifier: ^8.4.0
         version: 8.5.0(tsx@4.19.4)(typescript@5.8.3)
@@ -86,9 +90,6 @@ importers:
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
-      typescript-eslint:
-        specifier: ^8.30.1
-        version: 8.33.1(eslint@9.28.0)(typescript@5.8.3)
 
   libs/dto:
     dependencies:

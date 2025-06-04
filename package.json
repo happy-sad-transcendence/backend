@@ -1,10 +1,21 @@
 {
   "name": "backend",
   "private": true,
+  "type": "module",
   "packageManager": "pnpm@10.11.0",
   "pnpm": {
     "overrides": {
       "@hst/dto": "workspace:*"
     }
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.25.0",
+    "@types/node": "^22.15.3",
+    "eslint": "^9.25.0",
+    "eslint-config-prettier": "^10.1.5",
+    "globals": "^16.2.0",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.30.1"
   }
 }
