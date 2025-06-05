@@ -4,7 +4,8 @@
   "type": "module",
   "packageManager": "pnpm@10.11.0",
   "scripts": {
-    "dev:main": "pnpm --filter main-server dev"
+    "dev:main": "pnpm --filter main-server dev",
+    "install:main": "pnpm --filter main-server install"
   },
   "pnpm": {
     "overrides": {
