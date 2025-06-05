@@ -91,6 +91,46 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
+  apps/main-server:
+    dependencies:
+      '@fastify/autoload':
+        specifier: ^6.3.0
+        version: 6.3.1
+      '@fastify/jwt':
+        specifier: ^9.1.0
+        version: 9.1.0
+      '@fastify/type-provider-typebox':
+        specifier: ^5.1.0
+        version: 5.1.0(@sinclair/typebox@0.34.33)
+      '@hst/dto':
+        specifier: workspace:*
+        version: link:../../libs/dto
+      axios:
+        specifier: ^1.9.0
+        version: 1.9.0
+      fastify:
+        specifier: ^5.3.2
+        version: 5.3.3
+      fastify-metrics:
+        specifier: ^12.1.0
+        version: 12.1.0(fastify@5.3.3)
+      fastify-plugin:
+        specifier: ^5.0.1
+        version: 5.0.1
+      pino-pretty:
+        specifier: ^13.0.0
+        version: 13.0.0
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.15.29
+      tsx:
+        specifier: ^4.19.4
+        version: 4.19.4
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
   libs/dto:
     dependencies:
       '@sinclair/typebox':
@@ -293,6 +333,9 @@ packages:
   '@fastify/ajv-compiler@4.0.2':
     resolution: {integrity: sha512-Rkiu/8wIjpsf46Rr+Fitd3HRP+VsxUFDDeag0hs9L0ksfnwx2g7SPQQTFL0E8Qv+rfXzQOxBJnjUB9ITUDjfWQ==}
 
+  '@fastify/autoload@6.3.1':
+    resolution: {integrity: sha512-0fsG+lO3m5yEZVjXKpltCe+2eHhM6rfAPQhvlGUgLUFTw/N2wA9WqPTObMtrF3oUCUrxbSDv60HlUIoh+aFM1A==}
+
   '@fastify/error@4.2.0':
     resolution: {integrity: sha512-RSo3sVDXfHskiBZKBPRgnQTtIqpi/7zhJOEmAxCiBcM7d0uwdGdxLlsCaLzGs8v8NnxIRlfG0N51p5yFaOentQ==}
 
@@ -310,6 +353,11 @@ packages:
 
   '@fastify/proxy-addr@5.0.0':
     resolution: {integrity: sha512-37qVVA1qZ5sgH7KpHkkC4z9SK6StIsIcOmpjvMPXNb3vx2GQxhZocogVYbr2PbbeLCQxYIPDok307xEvRZOzGA==}
+
+  '@fastify/type-provider-typebox@5.1.0':
+    resolution: {integrity: sha512-F1AQHeLiKp1hu6GMWm5W6fZ6zXQ0mTV+qHOzrptAie9AYewvFr5Q3blfy8Qmx9gUgwA3Yj+CWvQQJeTwDgTnIg==}
+    peerDependencies:
+      '@sinclair/typebox': '>=0.26 <=0.34'
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -1748,6 +1796,8 @@ snapshots:
       ajv-formats: 3.0.1(ajv@8.17.1)
       fast-uri: 3.0.6
 
+  '@fastify/autoload@6.3.1': {}
+
   '@fastify/error@4.2.0': {}
 
   '@fastify/fast-json-stringify-compiler@5.0.3':
@@ -1772,6 +1822,10 @@ snapshots:
     dependencies:
       '@fastify/forwarded': 3.0.0
       ipaddr.js: 2.2.0
+
+  '@fastify/type-provider-typebox@5.1.0(@sinclair/typebox@0.34.33)':
+    dependencies:
+      '@sinclair/typebox': 0.34.33
 
   '@humanfs/core@0.19.1': {}
 

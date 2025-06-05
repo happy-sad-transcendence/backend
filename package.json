@@ -3,6 +3,9 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.11.0",
+  "scripts": {
+    "dev:main": "pnpm --filter main-server dev"
+  },
   "pnpm": {
     "overrides": {
       "@hst/dto": "workspace:*"
