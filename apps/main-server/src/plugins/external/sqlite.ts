@@ -1,40 +1,43 @@
 import fp from 'fastify-plugin';
-import { DatabaseSync } from 'node:sqlite';
 import knex from 'knex';
+import { mkdir } from 'fs/promises';
+import { dirname, resolve } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const dbPath = resolve(__dirname, '../../../data/app.db');
+const migrationsPath = resolve(__dirname, '../../../migrations');
 
 const knexConfig = {
-  client: 'sqlite3',
-  connection: {
-    filename: './data/app.db',
-  },
-  migrations: {
-    directory: './migrations',
-  },
+  client: 'better-sqlite3',
+  connection: { filename: dbPath },
+  migrations: { directory: migrationsPath },
   useNullAsDefault: true,
 };
 
 export default fp(async (fastify) => {
-  const db = new DatabaseSync('./data/app.db');
-  const queryBuilder = knex(knexConfig);
+  await mkdir(dirname(dbPath), { recursive: true });
 
-  // 마이그레이션 실행
-  await queryBuilder.migrate.latest();
+  const db = knex(knexConfig);
 
-  db.exec('PRAGMA journal_mode = WAL;');
-  db.exec('PRAGMA busy_timeout = 3000;');
+  try {
+    await db.migrate.latest();
+    await db.raw('PRAGMA journal_mode = WAL;');
+    await db.raw('PRAGMA busy_timeout = 3000;');
+    await db.raw('PRAGMA foreign_keys = ON;');
 
-  fastify.decorate('db', db);
-  fastify.decorate('knex', queryBuilder);
+    fastify.decorate('knex', db);
+    fastify.addHook('onClose', async () => await db.destroy());
 
-  fastify.addHook('onClose', async (_instance) => {
-    await queryBuilder.destroy();
-    db.close();
-  });
+    fastify.log.info('SQLite database initialized successfully');
+  } catch (error) {
+    fastify.log.error('Failed to initialize SQLite database:', error);
+    throw error;
+  }
 });
 
 declare module 'fastify' {
   interface FastifyInstance {
-    db: DatabaseSync;
     knex: knex.Knex;
   }
 }
