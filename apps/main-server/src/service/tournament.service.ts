@@ -5,14 +5,12 @@ import { DatabaseConfig } from '../config/database.config.js';
 import { TournamentCreateRequestDTO, TournamentCreateResponseDTO } from '@hst/dto';
 import { Tournament } from 'src/entity/tournament.entity.js';
 
-// Java의 @Service TournamentService와 같음
 export class TournamentService {
   private tournamentRepo: TournamentRepository;
   private gameRepo: GameRepository;
   private userRepo: UserRepository;
 
   constructor() {
-    // TODO: DI Container로 나중에 교체
     const db = DatabaseConfig.getInstance();
     this.tournamentRepo = new TournamentRepository(db);
     this.gameRepo = new GameRepository(db);

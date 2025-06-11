@@ -6,7 +6,6 @@ export class UserService {
   private userRepo: UserRepository;
 
   constructor() {
-    // TODO: DI Container로 나중에 교체
     const db = DatabaseConfig.getInstance();
     this.userRepo = new UserRepository(db);
   }

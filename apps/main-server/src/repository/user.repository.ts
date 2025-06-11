@@ -2,7 +2,6 @@ import { Knex } from 'knex';
 import { User } from '../entity/user.entity.js';
 import { UserSettingUpdateRequestDTO } from '@hst/dto';
 
-// Java의 @Repository UserRepository와 같음
 export class UserRepository {
   constructor(private db: Knex) {}
 

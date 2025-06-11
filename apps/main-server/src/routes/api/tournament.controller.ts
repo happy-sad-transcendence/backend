@@ -11,7 +11,6 @@ import {
 } from '@hst/dto';
 
 export async function tournamentController(app: FastifyInstance) {
-  // TODO: DI Container로 나중에 교체
   const tournamentService = new TournamentService();
   const gameService = new GameService();
 

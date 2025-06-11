@@ -3,7 +3,6 @@ import { UserService } from '../../service/user.service.js';
 import { UserSettingUpdateRequestSchema, UserSettingResponseSchema } from '@hst/dto';
 
 export async function userController(app: FastifyInstance) {
-  // TODO: DI Container로 나중에 교체
   const userService = new UserService();
 
   app.get(

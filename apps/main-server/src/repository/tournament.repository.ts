@@ -20,12 +20,10 @@ export class TournamentRepository {
     return tournament;
   }
 
-  // Java의 findById(Long id)와 같음
   async findById(id: number): Promise<Tournament | undefined> {
     return await this.db('tournament').where('id', id).first();
   }
 
-  // Java의 findByUserId(Long userId)와 같음
   async findAllByUserId(userId: number): Promise<Tournament[]> {
     return await this.db('tournament')
       .where('user_id', userId)
