@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import axios from 'axios';
-import { getGoogleOAuthSecrets } from '../service/vault.js';
+import { getGoogleOAuthSecrets } from '../../../service/vault.js';
 
 export async function oauthRoutes(app: FastifyInstance) {
   app.get('/google', async (_req, reply) => {

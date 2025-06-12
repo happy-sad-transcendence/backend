@@ -10,7 +10,7 @@ export default async function serviceApp(fastify: FastifyInstance, opts: Fastify
   });
 
   await fastify.register(fastifyAutoload, {
-    dir: path.join(import.meta.dirname, 'route'),
+    dir: path.join(import.meta.dirname, 'routes'),
     autoHooks: true,
     cascadeHooks: true,
     options: { ...opts },
