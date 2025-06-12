@@ -1,26 +1,21 @@
-import Fastify from 'fastify';
-import dotenv from 'dotenv';
-import jwtPlugin from './plugins/jwt.js';
-import metricsPlugin from './plugins/metrics.js';
-import routes from './route/index.js';
+import path from 'node:path';
+import fastifyAutoload from '@fastify/autoload';
 
-export function buildApp() {
-  dotenv.config();
+import type { FastifyInstance, FastifyPluginOptions } from 'fastify';
 
-  const app = Fastify({
-    logger: {
-      transport: { target: 'pino-pretty' },
-    },
+export default async function serviceApp(fastify: FastifyInstance, opts: FastifyPluginOptions) {
+  await fastify.register(fastifyAutoload, {
+    dir: path.join(import.meta.dirname, 'plugins'),
+    options: { ...opts },
   });
 
-  app.register(metricsPlugin);
-  app.register(jwtPlugin);
+  await fastify.register(fastifyAutoload, {
+    dir: path.join(import.meta.dirname, 'route'),
+    autoHooks: true,
+    cascadeHooks: true,
+    options: { ...opts },
+  });
 
-  // 헬스체크 & 루트
-  app.get('/', async () => ({ message: 'Auth 서버 준비 완료!' }));
-  app.get('/health', async () => ({ status: 'ok' }));
-
-  app.register(routes);
-
-  return app;
+  fastify.get('/', async () => ({ message: 'Auth 서버 준비 완료!' }));
+  fastify.get('/health', async () => ({ status: 'ok' }));
 }

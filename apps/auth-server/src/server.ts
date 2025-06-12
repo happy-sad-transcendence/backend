@@ -1,12 +1,45 @@
-import { buildApp } from './app.js';
+import Fastify from 'fastify';
+import fp from 'fastify-plugin';
+import serviceApp from './app.js';
 
-const app = buildApp();
-const PORT = Number(process.env.PORT ?? 4000);
+function getLoggerOptions() {
+  if (process.stdout.isTTY) {
+    return {
+      level: 'info',
+      transport: {
+        target: 'pino-pretty',
+        options: {
+          translateTime: 'HH:MM:ss Z',
+          ignore: 'pid,hostname',
+        },
+      },
+    };
+  }
 
-app.listen({ port: PORT, host: '0.0.0.0' }, (err, address) => {
-  if (err) {
+  return { level: process.env.LOG_LEVEL ?? 'silent' };
+}
+
+const app = Fastify({
+  logger: getLoggerOptions(),
+  ajv: {
+    customOptions: {
+      coerceTypes: 'array',
+      removeAdditional: 'all',
+    },
+  },
+});
+
+async function init() {
+  await app.register(fp(serviceApp));
+
+  await app.ready();
+
+  try {
+    await app.listen({ host: '0.0.0.0', port: Number(process.env.PORT ?? 4000) });
+  } catch (err) {
     app.log.error(err);
     process.exit(1);
   }
-  app.log.info(`Auth 서버 실행 중: ${address}`);
-});
+}
+
+init();
