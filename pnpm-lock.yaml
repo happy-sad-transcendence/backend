@@ -50,6 +50,9 @@ importers:
       '@fastify/swagger-ui':
         specifier: ^5.2.2
         version: 5.2.3
+      '@fastify/type-provider-typebox':
+        specifier: ^5.1.0
+        version: 5.1.0(@sinclair/typebox@0.34.33)
       '@hst/dto':
         specifier: workspace:*
         version: link:../../libs/dto

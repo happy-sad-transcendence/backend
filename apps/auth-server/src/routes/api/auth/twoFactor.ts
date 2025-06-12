@@ -1,44 +1,75 @@
-// src/routes/twoFactor.ts
-import { FastifyInstance } from 'fastify';
+import { FastifyPluginAsyncTypebox, Type } from '@fastify/type-provider-typebox';
 import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
+import { AuthSetupResponseSchema, AuthVerifyRequestSchema, ErrorResponseSchema } from '@hst/dto';
 
 const secretMap = new Map<string, string>(); // 간단한 메모리 저장소 (실제 앱에서는 DB 사용)
 
-export async function twoFactorRoutes(app: FastifyInstance) {
+const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
   // OTP 시크릿 생성 및 QR 코드 발급
-  app.get('/setup', async (req, reply) => {
-    const email = (req.query as any).email;
-    if (!email) return reply.status(400).send({ error: 'Missing email' });
+  fastify.get(
+    '/setup',
+    {
+      schema: {
+        querystring: Type.Object({
+          email: Type.String(),
+        }),
+        response: {
+          200: AuthSetupResponseSchema,
+          400: ErrorResponseSchema,
+        },
+        tags: ['auth'],
+      },
+    },
+    async (request, reply) => {
+      const { email } = request.query;
+      if (!email) return reply.status(400).send({ error: 'Missing email' });
 
-    const secret = speakeasy.generateSecret({
-      name: `ft_transcendence (${email})`,
-    });
+      const secret = speakeasy.generateSecret({
+        name: `ft_transcendence (${email})`,
+      });
 
-    secretMap.set(email, secret.base32);
+      secretMap.set(email, secret.base32);
 
-    const qr = await qrcode.toDataURL(secret.otpauth_url!);
-    return reply.send({ qr, secret: secret.base32 });
-  });
+      const qrLink = await qrcode.toDataURL(secret.otpauth_url!);
+      return reply.send({ qrLink });
+    },
+  );
 
   // OTP 코드 검증
-  app.post('/verify', async (req, reply) => {
-    const { email, token } = req.body as { email: string; token: string };
+  fastify.post(
+    '/verify',
+    {
+      schema: {
+        body: AuthVerifyRequestSchema,
+        response: {
+          201: {},
+          400: ErrorResponseSchema,
+          401: ErrorResponseSchema,
+        },
+        tags: ['auth'],
+      },
+    },
+    async (request, reply) => {
+      const { email, token } = request.body as { email: string; token: string };
 
-    const secret = secretMap.get(email);
-    if (!secret) return reply.status(400).send({ error: 'No 2FA registered' });
+      const secret = secretMap.get(email);
+      if (!secret) return reply.status(400).send({ error: '2FA not configured' });
 
-    const verified = speakeasy.totp.verify({
-      secret,
-      encoding: 'base32',
-      token,
-      window: 1,
-    });
+      const verified = speakeasy.totp.verify({
+        secret,
+        encoding: 'base32',
+        token,
+        window: 1,
+      });
 
-    if (!verified) {
-      return reply.status(401).send({ success: false, error: 'Invalid token' });
-    }
+      if (!verified) {
+        return reply.status(401).send({ error: 'Invalid token' });
+      }
 
-    return reply.send({ success: true });
-  });
-}
+      return reply.send();
+    },
+  );
+};
+
+export default plugin;
