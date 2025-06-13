@@ -14,20 +14,25 @@ declare module '@fastify/jwt' {
   }
 }
 
-export default fp(async (app) => {
-  await app.register(cookie);
+export default fp(
+  async (app) => {
+    await app.register(cookie);
 
-  let cachedSecret: string | null = null;
-  async function secretProvider() {
-    return (cachedSecret ??= await app.vault.getJwtSecret());
-  }
+    let cachedSecret: string | null = null;
+    async function secretProvider() {
+      return (cachedSecret ??= await app.vault.getJwtSecret());
+    }
 
-  app.register(jwt, {
-    secret: secretProvider,
-    sign: { expiresIn: '1h' },
-    cookie: {
-      cookieName: 'access_token',
-      signed: false,
-    },
-  });
-});
+    app.register(jwt, {
+      secret: secretProvider,
+      sign: { expiresIn: '1h' },
+      cookie: {
+        cookieName: 'access_token',
+        signed: false,
+      },
+    });
+  },
+  {
+    dependencies: ['vault'],
+  },
+);
