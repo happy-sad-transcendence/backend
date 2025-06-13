@@ -1,9 +1,10 @@
-import { FastifyPluginAsyncTypebox, Type } from '@fastify/type-provider-typebox';
+import { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import axios from 'axios';
 import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
 import { AuthSetupResponseSchema, AuthVerifyRequestSchema, ErrorResponseSchema } from '@hst/dto';
 
-const secretMap = new Map<string, string>(); // 간단한 메모리 저장소 (실제 앱에서는 DB 사용)
+// 메인에서 Cache-Control: no-store
 
 const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
   // OTP 시크릿 생성 및 QR 코드 발급
@@ -11,9 +12,6 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
     '/setup',
     {
       schema: {
-        querystring: Type.Object({
-          email: Type.String(),
-        }),
         response: {
           200: AuthSetupResponseSchema,
           400: ErrorResponseSchema,
@@ -22,17 +20,32 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const { email } = request.query;
-      if (!email) return reply.status(400).send({ error: 'Missing email' });
-
+      const { email } = request.cookies;
       const secret = speakeasy.generateSecret({
         name: `ft_transcendence (${email})`,
       });
 
-      secretMap.set(email, secret.base32);
+      const clientToken = request.cookies.access_token;
+
+      try {
+        await axios.post(
+          `${process.env.MAIN_SERVER_URL}/api/users/2fa-secret`,
+          { email, secret: secret.base32 },
+          {
+            headers: {
+              Authorization: `Bearer ${clientToken}`,
+            },
+            // no-store 캐시 방지
+            validateStatus: (status) => status === 200,
+          },
+        );
+      } catch (err) {
+        request.log.error(err, 'Failed to save 2FA secret to main server');
+        return reply.status(500).send({ error: 'Failed to save 2FA secret to main server' });
+      }
 
       const qrLink = await qrcode.toDataURL(secret.otpauth_url!);
-      return reply.send({ qrLink });
+      return reply.status(200).send({ qrLink });
     },
   );
 
@@ -51,10 +64,24 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const { email, token } = request.body as { email: string; token: string };
+      const { token } = request.body;
+      const clientToken = request.cookies.access_token;
 
-      const secret = secretMap.get(email);
-      if (!secret) return reply.status(400).send({ error: '2FA not configured' });
+      let secret: string;
+      try {
+        const response = await axios.get<{ secret: string }>(
+          `${process.env.MAIN_SERVER_URL}/api/users/2fa-secret`,
+          {
+            headers: {
+              Authorization: `Bearer ${clientToken}`,
+            },
+          },
+        );
+        secret = response.data.secret;
+      } catch (err) {
+        request.log.error(err, '2FA not configured');
+        return reply.status(400).send({ error: '2FA not configured' });
+      }
 
       const verified = speakeasy.totp.verify({
         secret,
@@ -67,7 +94,7 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
         return reply.status(401).send({ error: 'Invalid token' });
       }
 
-      return reply.send();
+      return reply.status(201);
     },
   );
 };
