@@ -1,2 +1,2 @@
-export * from './UserSettingResponse';
-export * from './UserSettingUpdateRequest';
+export * from './UserSettingResponse.js';
+export * from './UserSettingUpdateRequest.js';

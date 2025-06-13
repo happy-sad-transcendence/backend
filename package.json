@@ -7,7 +7,12 @@
     "dev:auth": "pnpm --filter auth-server dev",
     "dev:main": "pnpm --filter main-server dev",
     "install:auth": "pnpm --filter auth-server install",
-    "install:main": "pnpm --filter main-server install"
+    "install:main": "pnpm --filter main-server install",
+    "remove:auth": "pnpm --filter auth-server remove",
+    "remove:main": "pnpm --filter main-server remove",
+    "build:dto": "pnpm --filter @hst/dto build",
+    "build:auth": "pnpm --filter auth-server build",
+    "build:main": "pnpm --filter main-server build"
   },
   "pnpm": {
     "overrides": {

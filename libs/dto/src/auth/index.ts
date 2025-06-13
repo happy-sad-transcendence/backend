@@ -1,3 +1,3 @@
-export * from './AuthVerifyRequest';
-export * from './AuthVerifyResponse';
-export * from './AuthSetupResponse';
+export * from './AuthVerifyRequest.js';
+export * from './AuthVerifyResponse.js';
+export * from './AuthSetupResponse.js';
