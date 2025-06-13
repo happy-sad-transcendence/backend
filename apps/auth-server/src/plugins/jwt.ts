@@ -1,19 +1,33 @@
 import fp from 'fastify-plugin';
 import jwt from '@fastify/jwt';
-import { getJwtSecret } from '../service/vault.js';
+import cookie from '@fastify/cookie';
+
+declare module '@fastify/jwt' {
+  interface FastifyJWT {
+    payload: {
+      email: string;
+      googleId: string;
+      name: string;
+      twoFA: boolean;
+    };
+    user: this['payload'];
+  }
+}
 
 export default fp(async (app) => {
-  let cachedSecret: string | null = null;
+  await app.register(cookie);
 
-  // 실제 sign/verify 시점에만 호출
-  async function secretProvider(request, reply) {
-    if (cachedSecret) return cachedSecret;
-    cachedSecret = await getJwtSecret();
-    return cachedSecret;
+  let cachedSecret: string | null = null;
+  async function secretProvider() {
+    return (cachedSecret ??= await app.vault.getJwtSecret());
   }
 
   app.register(jwt, {
     secret: secretProvider,
     sign: { expiresIn: '1h' },
+    cookie: {
+      cookieName: 'access_token',
+      signed: false,
+    },
   });
 });
