@@ -1,9 +1,12 @@
 import { FastifyPluginAsyncTypebox, Type } from '@fastify/type-provider-typebox';
-import axios from 'axios';
-import { getGoogleOAuthSecrets } from '../../../services/vault.js';
 import { ErrorResponseSchema } from '@hst/dto';
+import { OAuthService } from '../../../services/oauth.service.js';
+import { AuthService } from '../../../services/auth.service.js';
 
 const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
+  const oauthService = new OAuthService(fastify);
+  const authService = new AuthService(fastify);
+
   fastify.get(
     '/google',
     {
@@ -17,14 +20,7 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const { clientId, redirectUri } = await getGoogleOAuthSecrets();
-
-      const redirectUrl =
-        `https://accounts.google.com/o/oauth2/v2/auth` +
-        `?client_id=${clientId}` +
-        `&redirect_uri=${redirectUri}` +
-        `&response_type=code` +
-        `&scope=openid%20email%20profile`;
+      const redirectUrl = await oauthService.getGoogleAuthUrl();
       return reply.status(302).redirect(redirectUrl);
     },
   );
@@ -53,46 +49,21 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
       }
 
       try {
-        const { clientId, clientSecret, redirectUri } = await getGoogleOAuthSecrets();
+        const accessToken = await oauthService.exchangeCodeForToken(code);
+        const userInfo = await oauthService.getGoogleUserInfo(accessToken);
+        const twoFA = await oauthService.checkTwoFAStatus(accessToken);
 
-        const tokenRes = await axios.post('https://oauth2.googleapis.com/token', null, {
-          params: {
-            code,
-            client_id: clientId,
-            client_secret: clientSecret,
-            redirect_uri: redirectUri,
-            grant_type: 'authorization_code',
-          },
-        });
+        const payload = {
+          email: userInfo.email,
+          googleId: userInfo.id,
+          name: userInfo.name,
+          twoFA: false,
+        };
 
-        const { access_token } = tokenRes.data;
+        const token = await authService.generateUserToken(payload);
+        const redirectUrl = authService.getRedirectUrl(twoFA);
 
-        const userRes = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
-          headers: { Authorization: `Bearer ${access_token}` },
-        });
-
-        const { email, id, name } = userRes.data;
-
-        const twoFARes = await axios.post('/api/user/setting', {
-          headers: { Authorization: `Bearer ${access_token}` },
-        });
-        const { twoFA } = twoFARes.data;
-
-        const payload = { email, googleId: id, name, twoFA: false };
-
-        const token = await fastify.jwt.sign(payload);
-
-        if (twoFA === false) {
-          return reply
-            .setCookie('access_token', token, { httpOnly: true, path: '/api' })
-            .status(302)
-            .redirect('/twofa');
-        } else {
-          return reply
-            .setCookie('access_token', token, { httpOnly: true, path: '/api' })
-            .status(302)
-            .redirect('/lobby');
-        }
+        return authService.setAuthCookie(reply, token).status(302).redirect(redirectUrl);
       } catch (err) {
         request.log.error(err);
         return reply.status(500).send({ error: 'OAuth failed' });
