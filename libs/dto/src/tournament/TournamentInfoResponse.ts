@@ -1,5 +1,5 @@
 import { Type, Static } from '@sinclair/typebox';
-import { GameResponseSchema } from './GameResponse';
+import { GameResponseSchema } from './GameResponse.js';
 
 export const TournamentInfoResponseSchema = Type.Object({
   playerCount: Type.Number(),
