@@ -1,12 +1,6 @@
 import fp from 'fastify-plugin';
 import axios from 'axios';
-
-// 간단한 타입 정의
-interface GoogleOAuthSecrets {
-  clientId: string;
-  clientSecret: string;
-  redirectUri: string;
-}
+import { GoogleOAuthSecrets } from '@hst/dto';
 
 // Vault 플러그인 타입 확장
 declare module 'fastify' {
