@@ -1,6 +1,6 @@
 import { FastifyPluginAsyncTypebox, Type } from '@fastify/type-provider-typebox';
 import axios from 'axios';
-import { getGoogleOAuthSecrets } from '../../../service/vault.js';
+import { getGoogleOAuthSecrets } from '../../../services/vault.js';
 import { ErrorResponseSchema } from '@hst/dto';
 
 const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
@@ -25,7 +25,7 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
         `&redirect_uri=${redirectUri}` +
         `&response_type=code` +
         `&scope=openid%20email%20profile`;
-      return reply.redirect(redirectUrl);
+      return reply.status(302).redirect(redirectUrl);
     },
   );
 
@@ -73,9 +73,26 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
 
         const { email, id, name } = userRes.data;
 
-        const token = await fastify.jwt.sign({ email, googleId: id, name });
+        const twoFARes = await axios.post('/api/user/setting', {
+          headers: { Authorization: `Bearer ${access_token}` },
+        });
+        const { twoFA } = twoFARes.data;
 
-        return reply.redirect('/lobby');
+        const payload = { email, googleId: id, name, twoFA: false };
+
+        const token = await fastify.jwt.sign(payload);
+
+        if (twoFA === false) {
+          return reply
+            .setCookie('access_token', token, { httpOnly: true, path: '/api' })
+            .status(302)
+            .redirect('/twofa');
+        } else {
+          return reply
+            .setCookie('access_token', token, { httpOnly: true, path: '/api' })
+            .status(302)
+            .redirect('/lobby');
+        }
       } catch (err) {
         request.log.error(err);
         return reply.status(500).send({ error: 'OAuth failed' });
