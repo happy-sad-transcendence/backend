@@ -9,10 +9,14 @@ import {
   TournamentInfoResponseSchema,
   GameUpdateRequestSchema,
 } from '@hst/dto';
+import { FastifyPluginAsyncTypebox, Type } from '@fastify/type-provider-typebox';
 
 export async function tournamentController(app: FastifyInstance) {
   const tournamentService = new TournamentService();
   const gameService = new GameService();
+const plugin: FastifyPluginAsyncTypebox = async (app) => {
+  const tournamentService = new TournamentService(app);
+  const gameService = new GameService(app);
 
   app.post(
     '/tournaments',

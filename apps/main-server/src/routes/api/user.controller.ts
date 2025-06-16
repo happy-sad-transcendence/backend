@@ -1,9 +1,12 @@
 import { FastifyInstance } from 'fastify';
 import { UserService } from '../../service/user.service.js';
 import { UserSettingUpdateRequestSchema, UserSettingResponseSchema } from '@hst/dto';
+import { FastifyPluginAsyncTypebox, Type } from '@fastify/type-provider-typebox';
 
 export async function userController(app: FastifyInstance) {
   const userService = new UserService();
+const plugin: FastifyPluginAsyncTypebox = async (app) => {
+  const userService = new UserService(app);
 
   app.get(
     '/user/setting',

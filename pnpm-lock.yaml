@@ -111,9 +111,18 @@ importers:
       '@fastify/autoload':
         specifier: ^6.3.0
         version: 6.3.1
+      '@fastify/cookie':
+        specifier: ^11.0.2
+        version: 11.0.2
       '@fastify/jwt':
         specifier: ^9.1.0
         version: 9.1.0
+      '@fastify/swagger':
+        specifier: ^9.5.1
+        version: 9.5.1
+      '@fastify/swagger-ui':
+        specifier: ^5.2.2
+        version: 5.2.3
       '@fastify/type-provider-typebox':
         specifier: ^5.1.0
         version: 5.1.0(@sinclair/typebox@0.34.33)
