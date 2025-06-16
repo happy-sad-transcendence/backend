@@ -1,7 +1,7 @@
 import { Type, Static } from '@sinclair/typebox';
 
 const TournamentItemSchema = Type.Object({
-  tournamentId: Type.String({ format: 'uuid' }),
+  tournamentId: Type.Number(),
   isFinished: Type.Boolean(),
   createdAt: Type.String({ format: 'date-time' }),
 });
