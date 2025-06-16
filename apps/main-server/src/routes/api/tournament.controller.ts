@@ -31,6 +31,8 @@ const plugin: FastifyPluginAsyncTypebox = async (app) => {
     async (request, reply) => {
       try {
         const result = await tournamentService.createTournament(userId, request.body);
+        const { email } = request.user;
+        const result = await tournamentService.initializeTournament(email, request.body);
         return reply.status(201).send(result);
       } catch (error) {
         app.log.error('Error creating tournament:', error);
@@ -54,6 +56,10 @@ const plugin: FastifyPluginAsyncTypebox = async (app) => {
       try {
         const tournaments = await tournamentService.findAllByUserId(userId);
         return reply.send({ tournaments });
+        const { email } = request.user;
+        const tournaments = await tournamentService.getTournamentsByUserEmail(email);
+
+        return reply.send(tournaments);
       } catch (error) {
         app.log.error('Error getting tournaments:', error);
         return reply.status(500).send({ error: 'Failed to get tournaments' });
@@ -78,10 +84,12 @@ const plugin: FastifyPluginAsyncTypebox = async (app) => {
       },
     },
     async (request, reply) => {
+      const { email } = request.user;
       try {
         const tournamentId = parseInt(request.params.id);
         const tournament = await gameService.findByGamesByTournamentId(tournamentId);
 
+        const tournament = await gameService.getGamesByTournamentId(email, tournamentId);
         if (!tournament) {
           return reply.status(404).send({ error: 'Tournament not found' });
         }
@@ -112,8 +120,12 @@ const plugin: FastifyPluginAsyncTypebox = async (app) => {
       },
     },
     async (request, reply) => {
+      const { email } = request.user;
       try {
         const tournamentId = parseInt(request.params.tournamentId);
+        if (isNaN(tournamentId)) {
+          return reply.status(400).send({ error: 'Invalid tournament ID' });
+        }
         const gameData = request.body;
 
         const tournament = await tournamentService.findById(tournamentId);
