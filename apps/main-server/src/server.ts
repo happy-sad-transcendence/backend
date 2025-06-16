@@ -1,45 +1,18 @@
-import Fastify from 'fastify';
-import fp from 'fastify-plugin';
-import serviceApp from './app.js';
+import { buildApp } from './app.js';
 
-function getLoggerOptions() {
-  if (process.stdout.isTTY) {
-    return {
-      level: 'info',
-      transport: {
-        target: 'pino-pretty',
-        options: {
-          translateTime: 'HH:MM:ss Z',
-          ignore: 'pid,hostname',
-        },
-      },
-    };
-  }
+const app = buildApp();
 
-  return { level: process.env.LOG_LEVEL ?? 'silent' };
-}
-
-const app = Fastify({
-  logger: getLoggerOptions(),
-  ajv: {
-    customOptions: {
-      coerceTypes: 'array',
-      removeAdditional: 'all',
-    },
-  },
-});
-
-async function init() {
-  await app.register(fp(serviceApp));
-
-  await app.ready();
-
+const start = async () => {
   try {
-    await app.listen({ port: Number(process.env.PORT ?? 4000) });
+    const port = parseInt(process.env.PORT || '8000', 10);
+    const host = process.env.HOST || '0.0.0.0';
+
+    await app.listen({ port, host });
+    console.log(`🚀 Main 서버 실행 중: http://${host}:${port}`);
   } catch (err) {
     app.log.error(err);
     process.exit(1);
   }
-}
+};
 
-init();
+start();
