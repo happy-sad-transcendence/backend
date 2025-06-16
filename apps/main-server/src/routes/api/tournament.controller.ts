@@ -11,9 +11,6 @@ import {
 } from '@hst/dto';
 import { FastifyPluginAsyncTypebox, Type } from '@fastify/type-provider-typebox';
 
-export async function tournamentController(app: FastifyInstance) {
-  const tournamentService = new TournamentService();
-  const gameService = new GameService();
 const plugin: FastifyPluginAsyncTypebox = async (app) => {
   const tournamentService = new TournamentService(app);
   const gameService = new GameService(app);
@@ -25,17 +22,17 @@ const plugin: FastifyPluginAsyncTypebox = async (app) => {
         body: TournamentCreateRequestSchema,
         response: {
           201: TournamentCreateResponseSchema,
+          500: ErrorResponseSchema,
         },
+        tags: ['tournaments'],
       },
     },
     async (request, reply) => {
       try {
-        const result = await tournamentService.createTournament(userId, request.body);
         const { email } = request.user;
         const result = await tournamentService.initializeTournament(email, request.body);
         return reply.status(201).send(result);
       } catch (error) {
-        app.log.error('Error creating tournament:', error);
         return reply.status(500).send({
           error: 'Failed to create tournament',
         });
@@ -49,35 +46,27 @@ const plugin: FastifyPluginAsyncTypebox = async (app) => {
       schema: {
         response: {
           200: TournamentListResponseSchema,
+          500: ErrorResponseSchema,
         },
+        tags: ['tournaments'],
       },
     },
     async (request, reply) => {
       try {
-        const tournaments = await tournamentService.findAllByUserId(userId);
-        return reply.send({ tournaments });
         const { email } = request.user;
         const tournaments = await tournamentService.getTournamentsByUserEmail(email);
 
         return reply.send(tournaments);
       } catch (error) {
-        app.log.error('Error getting tournaments:', error);
         return reply.status(500).send({ error: 'Failed to get tournaments' });
       }
     },
   );
 
-  app.get<{ Params: { id: string } }>(
-    '/tournaments/:tournamentsId',
+  app.get<{ Params: { tournamentId: string } }>(
+    '/tournaments/:tournamentId',
     {
       schema: {
-        params: {
-          type: 'object',
-          properties: {
-            tournamentsId: { type: 'string', pattern: '^[0-9]+$' },
-          },
-          required: ['tournamentsId'],
-        },
         response: {
           200: TournamentInfoResponseSchema,
         },
