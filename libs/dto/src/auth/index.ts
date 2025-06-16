@@ -1,3 +1,2 @@
-export * from './AuthVerifyRequest.js';
-export * from './AuthVerifyResponse.js';
-export * from './AuthSetupResponse.js';
+export * from './Auth2FAVerifyRequest.js';
+export * from './Auth2FASetupResponse.js';
