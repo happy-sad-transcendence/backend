@@ -78,15 +78,73 @@ export class TournamentService {
     };
   }
 
-  async findAllByUserId(userId: number): Promise<Tournament[]> {
-    return await this.tournamentRepo.findAllByUserId(userId);
+  async getTournamentsByUserEmail(email: string): Promise<TournamentListResponseDTO> {
+    const user = await this.userRepo.findByEmail(email);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    const tournaments = await this.tournamentRepo.findAllByUserId(user.id);
+    return {
+      tournaments: tournaments.map((tournament) => ({
+        tournamentId: tournament.id,
+        isFinished: tournament.isFinished,
+        createdAt: tournament.createdAt,
+      })),
+    };
   }
 
-  async findById(tournamentId: number): Promise<Tournament | undefined> {
-    const tournament = await this.tournamentRepo.findById(tournamentId);
-    if (!tournament) {
-      throw new Error('Tournament not found');
+  async updateGameResult(
+    tournamentId: number,
+    round: number,
+    player1Score: number,
+    player2Score: number,
+    targetScore: number,
+  ): Promise<void> {
+    // 자식 노드 검증: 현재 라운드가 1라운드가 아닌 경우
+    if (round > 1) {
+      const childRound = round - 1;
+      const childGames = await this.gameRepo.findByTournamentIdAndRound(tournamentId, childRound);
+
+      // 자식 라운드의 모든 게임이 완료되었는지 확인
+      const unfinishedChildGames = childGames.filter((game) => !game.isFinished);
+      if (unfinishedChildGames.length > 0) {
+        throw new Error(
+          `Cannot update game result. Previous round (${childRound}) games are not finished yet.`,
+        );
+      }
     }
-    return tournament;
+
+    // 게임 결과 업데이트 로직
+    const game = await this.gameRepo.findByTournamentIdAndRound(tournamentId, round);
+    if (!game) {
+      throw new Error('Game not found');
+    }
+
+    if (game.isFinished) {
+      throw new Error('Game is already finished');
+    }
+
+    // 승부가 결정되었는지 확인
+    if (player1Score < targetScore && player2Score < targetScore) {
+      throw new Error('Game is not finished yet. Neither player reached target score');
+    }
+
+    // 게임 결과 업데이트
+    await this.gameRepo.updateScore(game.id, player1Score, player2Score, true);
+
+    // 승자 결정 및 다음 라운드로 진출
+    const winner = player1Score >= targetScore ? game.player1 : game.player2;
+
+    // 다음 라운드 게임에 승자 배치
+    const nextRound = round + 1;
+    const nextGame = await this.gameRepo.findByTournamentIdAndRound(tournamentId, nextRound);
+    if (nextGame) {
+      // 다음 라운드 게임의 빈 자리에 승자 배치
+      if (!nextGame.player1) {
+        await this.gameRepo.updatePlayer(nextGame.id, winner, nextGame.player2);
+      } else if (!nextGame.player2) {
+        await this.gameRepo.updatePlayer(nextGame.id, nextGame.player1, winner);
+      }
+    }
   }
 }
